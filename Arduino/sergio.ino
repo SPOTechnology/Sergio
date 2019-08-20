@@ -19,12 +19,16 @@ const int ActBack = 32;
 
 const int Unused33 = 33;
 
+//---------------------------
+
 void setup() {
     initPins();
 
     Serial.begin(9600);
     Arcade.begin(9600);
 }
+
+//---------------------------
 
 void initPins() {
     pinMode(MagPin, OUTPUT);
@@ -58,6 +62,8 @@ void initPins() {
     digitalWrite(Unused33, LOW);
 }
 
+//---------------------------
+
 void loop() {
     if (Serial.available())
         checkManualInput();
@@ -74,6 +80,8 @@ void loop() {
         updateRelays(inputFromArcade());
 }
 
+//---------------------------
+
 void checkManualInput() {
     String input = Serial.readString();
 
@@ -89,7 +97,7 @@ void checkManualInput() {
             int x = input.charAt(i) - '0';
             if (x != 0 && x != 1)
                 return;
-            encodedState |= x << i;
+            encodedState |= (x << i);
         }
 
         //could run checks on data in the future
@@ -98,27 +106,33 @@ void checkManualInput() {
     }
 }
 
+//---------------------------
+
 unsigned char inputFromArcade() {
     return Arcade.read();
 
     //could run checks on data in the future
 }
 
+//---------------------------
+
 void updateRelays(unsigned char encodedState) {
     //args bool activated (true == on)
-    updateMag(encodedState & 1 << 7);
+    updateMag(encodedState & (1 << 7));
 
-    bool acting = encodedState & 1 << 1 || encodedState & 1 << 2 ? true : false;
+    bool acting = (encodedState & (1 << 1)) || (encodedState & (1 << 2)) ? true : false;
 
     //args bool up, bool down, bool acting
-    updateVert(encodedState & 1 << 6, encodedState & 1 << 5, acting);
+    updateVert(encodedState & (1 << 6), encodedState & (1 << 5), acting);
 
     //args bool left, bool right, bool acting
-    updateHor(encodedState & 1 << 4, encodedState & 1 << 3, acting);
+    updateHor(encodedState & (1 << 4), encodedState & (1 << 3), acting);
 
     //args bool forward, bool back
-    updateAct(encodedState & 1 << 2, encodedState & 1 << 1);
+    updateAct(encodedState & (1 << 2), encodedState & (1 << 1));
 }
+
+//---------------------------
 
 //args bool activated (true == on)
 void updateMag(bool activated) {
@@ -127,6 +141,8 @@ void updateMag(bool activated) {
     else
         digitalWrite(MagPin, LOW);
 }
+
+//---------------------------
 
 void updateVert(bool up, bool down, bool acting) {
     if (up && !acting) {
@@ -145,6 +161,8 @@ void updateVert(bool up, bool down, bool acting) {
     digitalWrite(VertDown, LOW);
 }
 
+//---------------------------
+
 void updateHor(bool left, bool right, bool acting) {
     if (left && !acting) {
         //go left
@@ -161,6 +179,8 @@ void updateHor(bool left, bool right, bool acting) {
     digitalWrite(HorLeft, LOW);
     digitalWrite(HorRight, LOW);
 }
+
+//---------------------------
 
 void updateAct(bool forward, bool back) {
     if (back) {
