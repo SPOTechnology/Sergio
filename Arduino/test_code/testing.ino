@@ -1,5 +1,4 @@
-void setup()
-{
+void setup() {
     // put your setup code here, to run once:
     pinMode(2, OUTPUT);
     pinMode(3, OUTPUT);
@@ -28,11 +27,9 @@ void setup()
     Serial.begin(9600);
 }
 
-void loop()
-{
+void loop() {
     // put your main code here, to run repeatedly:
-    if (Serial.available())
-    {
+    if (Serial.available()) {
         int pin = Serial.readString().toInt();
         if ((pin >= 2 && pin <= 9) || (pin >= 30 && pin <= 33))
             digitalWrite(pin, !digitalRead(pin));
