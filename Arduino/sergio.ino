@@ -1,5 +1,6 @@
-HardwareSerial& Arcade = Serial1;
+HardwareSerial& Arcade = Serial1;  //rename Serial1 port to Arcade
 
+//declare pins
 const int MagPin = 2;
 
 const int VertSwitched = 3;
@@ -19,13 +20,13 @@ const int ActBack = 32;
 const int Unused33 = 33;
 
 void setup() {
-    forwarditPforwards();
+    initPins();
 
     Serial.begin(9600);
     Arcade.begin(9600);
 }
 
-void forwarditPforwards() {
+void initPins() {
     pinMode(MagPin, OUTPUT);
     digitalWrite(MagPin, LOW);
 
@@ -58,7 +59,7 @@ void forwarditPforwards() {
 }
 
 void loop() {
-    checkManualForwardput();
+    checkManualInput();
 
     /*
     encode data as unsigned char from arcade as follows:
@@ -72,11 +73,19 @@ void loop() {
         updateRelays(inputFromArcade());
 }
 
-void checkManualForwardput() {
+void checkManualInput() {
     if (Serial.available()) {
-        int pin = Serial.readString().toInt();
-        if ((pin >= 2 && pin <= 9) || (pin >= 30 && pin <= 33))
+        String input = Serial.readString();
+
+        int pin = input.toInt();  //if telling pin number to flip
+        if ((pin >= 2 && pin <= 9) || (pin >= 30 && pin <= 33)) {
             digitalWrite(pin, !digitalRead(pin));
+            return;
+        }
+
+        if (input.length == 8) {  //if inputing binary encoded state, handle
+            //ask dodi for code
+        }
     }
 }
 
