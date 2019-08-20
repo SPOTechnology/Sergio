@@ -83,7 +83,7 @@ void checkManualInput() {
             return;
         }
 
-        if (input.length == 8) {  //if inputing binary encoded state, handle
+        if (input.length() == 8) {  //if inputing binary encoded state, handle
             //ask dodi for code
         }
     }
