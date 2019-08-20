@@ -19,6 +19,8 @@ const int ActBack = 32;
 
 const int Unused33 = 33;
 
+const int ActRetractSwitch = 10;
+
 //---------------------------
 
 void setup() {
@@ -58,6 +60,8 @@ void initPins() {
     pinMode(ActBack, OUTPUT);
     digitalWrite(ActBack, LOW);
 
+    pinMode(ActRetractSwitch, INPUT);
+
     pinMode(Unused33, OUTPUT);
     digitalWrite(Unused33, LOW);
 }
@@ -65,6 +69,8 @@ void initPins() {
 //---------------------------
 
 void loop() {
+    checkActuatorExtension();
+
     if (Serial.available())
         checkManualInput();
 
@@ -78,6 +84,19 @@ void loop() {
 
     if (Arcade.available())
         updateRelays(inputFromArcade());
+}
+
+//---------------------------
+
+void checkActuatorExtension() {
+    if (digitalRead(ActRetractSwitch) == LOW) {  //disable movement when actuator is out
+        digitalWrite(VertSwitched, LOW);
+        digitalWrite(VertUp, LOW);
+        digitalWrite(VertDown, LOW);
+        digitalWrite(HorSwitched, LOW);
+        digitalWrite(HorLeft, LOW);
+        digitalWrite(HorRight, LOW);
+    }
 }
 
 //---------------------------
@@ -120,7 +139,7 @@ void updateRelays(unsigned char encodedState) {
     //args bool activated (true == on)
     updateMag(encodedState & (1 << 7));
 
-    bool acting = (encodedState & (1 << 1)) || (encodedState & (1 << 2)) ? true : false;
+    bool acting = (encodedState & (1 << 1)) || (encodedState & (1 << 2) || (digitalRead(ActRetractSwitch) == LOW)) ? true : false;
 
     //args bool up, bool down, bool acting
     updateVert(encodedState & (1 << 6), encodedState & (1 << 5), acting);
