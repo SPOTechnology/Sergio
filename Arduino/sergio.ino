@@ -63,10 +63,10 @@ void loop() {
 
     /*
     encode data as unsigned char from arcade as follows:
-        format: item(on/off 0/1)
+        format: item (off/on 0/1)
 
-        mag(off/on)|up(off/on)|down(off/on)|left(off/on)|right(off/on)|forward(off/on)|back(off/on)|spare
-        7          |6         |5           |4           |3            |2              |1           |0
+        mag|up|down|left|right|forward|back|spare
+        7  |6 |5   |4   |3    |2      |1   |0
     */
 
     if (Arcade.available())
@@ -84,22 +84,32 @@ void checkManualInput() {
         }
 
         if (input.length() == 8) {  //if inputing binary encoded state, handle
-            //ask dodi for code
+            unsigned char encodedState = 0;
+            for (int i = 0; i < 8; ++i) {
+                int x = input.charAt(i) - '0';
+                if (x != 0 && x != 1)
+                    return;
+                encodedState |= x << i;
+            }
+
+            //could run checks on data in the future
+
+            updateRelays(encodedState);
         }
     }
 }
 
 unsigned char inputFromArcade() {
     return Arcade.read();
+
+    //could run checks on data in the future
 }
 
 void updateRelays(unsigned char encodedState) {
     //args bool activated (true == on)
     updateMag(encodedState & 1 << 7);
 
-    bool acting;
-    if (encodedState & 1 << 1 || encodedState & 1 << 2)
-        acting = true;
+    bool acting = encodedState & 1 << 1 || encodedState & 1 << 2 ? true : false;
 
     //args bool up, bool down, bool acting
     updateVert(encodedState & 1 << 6, encodedState & 1 << 5, acting);
