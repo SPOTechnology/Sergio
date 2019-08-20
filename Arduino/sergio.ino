@@ -63,10 +63,10 @@ void loop() {
 
     /*
     encode data as unsigned char from arcade as follows:
-        format: item(state at 0/1)
+        format: item(on/off 0/1)
 
-        mag(off/on)|vert(up/down)|vert(off/on)|hor(left/right)|hor(off/on)|act(forward/back)|act(off/on)|spare
-        128        |64           |32          |16             |8          |4          |2          |1
+        mag(off/on)|up(off/on)|down(off/on)|left(off/on)|right(off/on)|forward(off/on)|back(off/on)|spare
+        7          |6         |5           |4           |3            |2              |1           |0
     */
 
     if (Arcade.available())
@@ -97,14 +97,18 @@ void updateRelays(unsigned char encodedState) {
     //args bool activated (true == on)
     updateMag(encodedState & 1 << 7);
 
-    //args bool activated (true == on), bool direction (true = down, false = up)
-    updateVert(encodedState & 1 << 5, encodedState & 1 << 6, encodedState & 1 << 1);
+    bool acting;
+    if (encodedState & 1 << 1 || encodedState & 1 << 2)
+        acting = true;
 
-    //args bool activated (true == on), bool direction (true = right, false = left), acting (true = act on, false = act off)
-    updateHor(encodedState & 1 << 3, encodedState & 1 << 4, encodedState & 1 << 1);
+    //args bool up, bool down, bool acting
+    updateVert(encodedState & 1 << 6, encodedState & 1 << 5, acting);
 
-    //args bool activated (true == on), bool direction (true = back, false = forward), acting (true = act on, false = act off)
-    updateAct(encodedState & 1 << 1, encodedState & 1 << 2);
+    //args bool left, bool right, bool acting
+    updateHor(encodedState & 1 << 4, encodedState & 1 << 3, acting);
+
+    //args bool forward, bool back
+    updateAct(encodedState & 1 << 2, encodedState & 1 << 1);
 }
 
 //args bool activated (true == on)
@@ -115,42 +119,37 @@ void updateMag(bool activated) {
         digitalWrite(MagPin, LOW);
 }
 
-//args bool activated (true == on), bool direction (true = down, false = up), acting (true = act on, false = act off)
-void updateVert(bool activated, bool direction, bool acting) {
-    if (!activated || acting) {  //disable when not active actuator is active
-        digitalWrite(VertSwitched, LOW);
-        digitalWrite(VertUp, LOW);
-        digitalWrite(VertDown, LOW);
-        return;
-    }
+void updateVert(bool up, bool down, bool acting) {
+    //disable when not active actuator is acting
+    digitalWrite(VertSwitched, LOW);
+    digitalWrite(VertUp, LOW);
+    digitalWrite(VertDown, LOW);
 }
 
-//args bool activated (true == on), bool direction (true = right, false = left), actforward (true = act on, false = act off)
-void updateHor(bool activated, bool direction, bool acting) {
-    if (!activated || acting) {  //disable when not active or actuator is active
-        digitalWrite(HorSwitched, LOW);
-        digitalWrite(HorLeft, LOW);
-        digitalWrite(HorRight, LOW);
-        return;
-    }
+void updateHor(bool left, bool right, bool acting) {
+    //disable when not active or actuator is acting
+    digitalWrite(HorSwitched, LOW);
+    digitalWrite(HorLeft, LOW);
+    digitalWrite(HorRight, LOW);
 }
 
-//args bool activated (true == on), bool direction (true = back, false = forward)
-void updateAct(bool activated, bool direction) {
-    if (!activated) {  //if not activated, disable
-        digitalWrite(ActForward, LOW);
-        digitalWrite(ActBack, LOW);
-        digitalWrite(ActSwitched, LOW);
-        return;
-    }
-
-    if (direction) {                      //if back
+void updateAct(bool forward, bool back) {
+    if (back) {
         digitalWrite(ActForward, LOW);    //stop forward
         digitalWrite(ActSwitched, HIGH);  //select back
         digitalWrite(ActBack, HIGH);      //go back
-    } else {                              //if forward
-        digitalWrite(ActBack, LOW);       //stop forward
-        digitalWrite(ActSwitched, LOW);   //select back
-        digitalWrite(ActForward, HIGH);   //go back
+        return;
     }
+
+    if (forward) {
+        digitalWrite(ActBack, LOW);      //stop forward
+        digitalWrite(ActSwitched, LOW);  //select back
+        digitalWrite(ActForward, HIGH);  //go back
+        return;
+    }
+
+    //if not activated, disable
+    digitalWrite(ActForward, LOW);
+    digitalWrite(ActBack, LOW);
+    digitalWrite(ActSwitched, LOW);
 }
