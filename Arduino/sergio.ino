@@ -59,7 +59,8 @@ void initPins() {
 }
 
 void loop() {
-    checkManualInput();
+    if (Serial.available())
+        checkManualInput();
 
     /*
     encode data as unsigned char from arcade as follows:
@@ -74,28 +75,26 @@ void loop() {
 }
 
 void checkManualInput() {
-    if (Serial.available()) {
-        String input = Serial.readString();
+    String input = Serial.readString();
 
-        int pin = input.toInt();  //if telling pin number to flip
-        if ((pin >= 2 && pin <= 9) || (pin >= 30 && pin <= 33)) {
-            digitalWrite(pin, !digitalRead(pin));
-            return;
+    int pin = input.toInt();  //if telling pin number to flip
+    if ((pin >= 2 && pin <= 9) || (pin >= 30 && pin <= 33)) {
+        digitalWrite(pin, !digitalRead(pin));
+        return;
+    }
+
+    if (input.length() == 8) {  //if inputing binary encoded state, handle
+        unsigned char encodedState = 0;
+        for (int i = 0; i < 8; ++i) {
+            int x = input.charAt(i) - '0';
+            if (x != 0 && x != 1)
+                return;
+            encodedState |= x << i;
         }
 
-        if (input.length() == 8) {  //if inputing binary encoded state, handle
-            unsigned char encodedState = 0;
-            for (int i = 0; i < 8; ++i) {
-                int x = input.charAt(i) - '0';
-                if (x != 0 && x != 1)
-                    return;
-                encodedState |= x << i;
-            }
+        //could run checks on data in the future
 
-            //could run checks on data in the future
-
-            updateRelays(encodedState);
-        }
+        updateRelays(encodedState);
     }
 }
 
@@ -130,6 +129,16 @@ void updateMag(bool activated) {
 }
 
 void updateVert(bool up, bool down, bool acting) {
+    if (up && !acting) {
+        //go up
+        return;
+    }
+
+    if (down && !acting) {
+        //go down
+        return;
+    }
+
     //disable when not active actuator is acting
     digitalWrite(VertSwitched, LOW);
     digitalWrite(VertUp, LOW);
@@ -137,6 +146,16 @@ void updateVert(bool up, bool down, bool acting) {
 }
 
 void updateHor(bool left, bool right, bool acting) {
+    if (left && !acting) {
+        //go left
+        return;
+    }
+
+    if (right && !acting) {
+        //go right
+        return;
+    }
+
     //disable when not active or actuator is acting
     digitalWrite(HorSwitched, LOW);
     digitalWrite(HorLeft, LOW);
