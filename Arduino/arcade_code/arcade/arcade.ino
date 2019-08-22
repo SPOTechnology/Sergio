@@ -17,11 +17,9 @@ const int ResetPin = 9;
 const int Unused10 = 10;
 
 const int UpdateInterval = 100;  //send commands to Sergio every 100 millis
-
 long prevSendTime = 0;  //record the previous millis() of command sent to Sergio
 
 const int MagInterval = 2 * 60 * 100;  //timeout the magnet after 2 minutes
-
 long prevMagTime = 0;  //record the previous millis() the magnet was turned on at
 
 bool autoMode = true;  //manual or automatic control?
