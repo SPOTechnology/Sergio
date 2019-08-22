@@ -1,5 +1,6 @@
 {
-    "sketch": "arcade.ino",
+    "sketch": "arcade/arcade.ino",
     "board": "arduino:avr:mega",
-    "configuration": "cpu=atmega2560"
+    "configuration": "cpu=atmega2560",
+    "port": "/dev/ttyS0"
 }
