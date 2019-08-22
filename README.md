@@ -5,4 +5,4 @@
 
 The 9-foot-tall remote controlled operation game!
 
-www.SPOTechnology.com
+www.SPOTechnology.com/operation.html
