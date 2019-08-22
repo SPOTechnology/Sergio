@@ -26,7 +26,7 @@ bool autoMode = true;  //manual or automatic control?
 
 unsigned char lastManualState = 0;  //record the state entered manual through Serial
 
-const unsigned char HomeEncodedState = 0b01010011;  //set home position to top left, retracteds
+const unsigned char HomeEncodedState = 0b01010011;  //set home position to top left, retracted, reset
 
 //---------------------------
 
