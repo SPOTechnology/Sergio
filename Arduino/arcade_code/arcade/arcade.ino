@@ -69,6 +69,7 @@ void loop() {
         mag|up|down|left|right|forward|back|reset
         7  |6 |5   |4   |3    |2      |1   |0
     */
+
     //if it's been longer than the interval, update Sergio
     if ((millis() - prevSendTime >= UpdateInterval))
         sendCommands(checkControls());
