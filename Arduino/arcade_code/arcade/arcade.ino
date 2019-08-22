@@ -26,7 +26,9 @@ long prevMagTime = 0;  //record the previous millis() the magnet was turned on a
 
 bool autoMode = true;  //manual or automatic control?
 
-unsigned char lastManualState = 0;
+unsigned char lastManualState = 0;  //record the state entered manual through Serial
+
+const unsigned char HomeEncodedState = 0b01010010;  //set home position to top left, retracteds
 
 //---------------------------
 
@@ -82,8 +84,10 @@ void checkManualInput() {
     if (input == "manual")
         autoMode = false;
 
-    if (input == "auto")
+    if (input == "auto") {
         autoMode = true;
+        lastManualState = 0;
+    }
 
     if (input.length() == 8) {  //if inputing binary encoded state, handle
         unsigned char encodedState = 0;
@@ -115,18 +119,12 @@ void sendCommands(unsigned char encodedState) {
 unsigned char checkControls() {
     unsigned char encodedState = autoMode ? 0 : lastManualState;
 
-    if (digitalRead(MagPin) == HIGH) {
-        if (!checkMagTimeout())
-            encodedState |= (1 << 7);
-    } else {
-        encodedState |= (1 << 7);
-        encodedState &= (0 << 7);
-        prevMagTime = millis();
-    }
-
-    if (autoMode) {
+    if (autoMode)
         encodedState = findEncodedState();
-        lastManualState = encodedState;
+
+    if (checkMagTimeout()) {        //if the mag has not timed out, turn off
+        encodedState &= ~(1 << 7);  //set the mag bit to 0
+        prevMagTime = millis();
     }
 
     return encodedState;
@@ -145,6 +143,29 @@ bool checkMagTimeout() {
 
 unsigned char findEncodedState() {
     unsigned long encodedState = 0;
-    //find everthing but mag. do tomorrow
+
+    if (digitalRead(ResetPin) == HIGH)
+        return HomeEncodedState;  //if reset is pressed, return to home
+
+    if (digitalRead(MagPin) == HIGH)
+        encodedState |= (1 << 7);
+    else
+        prevMagTime = millis();
+
+    if (digitalRead(VertUp) == HIGH)
+        encodedState |= 6;
+    else if (digitalRead(VertDown) == HIGH)
+        encodedState |= 5;
+
+    if (digitalRead(HorLeft) == HIGH)
+        encodedState |= 4;
+    else if (digitalRead(HorRight) == HIGH)
+        encodedState |= 3;
+
+    if (digitalRead(ActForward) == HIGH)
+        encodedState |= 2;
+    else if (digitalRead(ActBack) == HIGH)
+        encodedState |= 1;
+
     return encodedState;
 }
