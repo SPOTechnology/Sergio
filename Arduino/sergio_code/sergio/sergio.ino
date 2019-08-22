@@ -206,12 +206,16 @@ void updateVert(bool up, bool down, bool acting) {
 
 void updateHor(bool left, bool right, bool acting) {
     if (left && !acting) {
-        //go left
+        digitalWrite(HorLeft, HIGH);
+        digitalWrite(HorRight, LOW);
+        digitalWrite(HorSwitched, LOW);
         return;
     }
 
     if (right && !acting) {
-        //go right
+        digitalWrite(HorLeft, LOW);
+        digitalWrite(HorRight, HIGH);
+        digitalWrite(HorSwitched, HIGH);
         return;
     }
 
