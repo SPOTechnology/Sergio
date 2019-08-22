@@ -11,7 +11,7 @@ const int HorSwitched = 6;
 const int HorLeft = 7;
 const int HorRight = 8;
 
-const int Unused9 = 9;
+const int AlarmPin = 9;
 
 const int ActSwitched = 30;
 const int ActForward = 31;
@@ -20,6 +20,10 @@ const int ActBack = 32;
 const int Unused33 = 33;
 
 const int ActRetractSwitch = 10;
+
+bool alarming = false;  //record if alarm should be sounding
+
+const unsigned char AllRelaysOff = 0b00000000;
 
 //---------------------------
 
@@ -50,8 +54,8 @@ void initPins() {
     pinMode(HorRight, OUTPUT);
     digitalWrite(HorRight, LOW);
 
-    pinMode(Unused9, OUTPUT);
-    digitalWrite(Unused9, LOW);
+    pinMode(AlarmPin, OUTPUT);
+    digitalWrite(AlarmPin, LOW);
 
     pinMode(ActSwitched, OUTPUT);
     digitalWrite(ActSwitched, LOW);
@@ -71,6 +75,8 @@ void initPins() {
 void loop() {
     checkActuatorExtension();
 
+    checkLose();
+
     if (Serial.available())
         checkManualInput();
 
@@ -78,7 +84,7 @@ void loop() {
     encode data as unsigned char from arcade as follows:
         format: item (off/on 0/1)
 
-        mag|up|down|left|right|forward|back|spare
+        mag|up|down|left|right|forward|back|reset
         7  |6 |5   |4   |3    |2      |1   |0
     */
 
@@ -97,6 +103,16 @@ void checkActuatorExtension() {
         digitalWrite(HorLeft, LOW);
         digitalWrite(HorRight, LOW);
     }
+}
+
+//---------------------------
+
+void checkLose() {
+    if (true)  //eventually if you have not lost
+        return;
+
+    updateRelays(AllRelaysOff);
+    alarming = true;
 }
 
 //---------------------------
@@ -138,6 +154,12 @@ unsigned char inputFromArcade() {
 void updateRelays(unsigned char encodedState) {
     //args bool activated (true == on)
     updateMag(encodedState & (1 << 7));
+
+    //args bool reset
+    updateAlarm(encodedState & (1 << 0));
+
+    if (alarming && !(encodedState & (1 << 0)))  //if alarming and reset button is not pressed, do not allow motion
+        return;
 
     bool acting = (encodedState & (1 << 1)) || (encodedState & (1 << 2) || (digitalRead(ActRetractSwitch) == LOW)) ? true : false;
 
@@ -220,4 +242,16 @@ void updateAct(bool forward, bool back) {
     digitalWrite(ActForward, LOW);
     digitalWrite(ActBack, LOW);
     digitalWrite(ActSwitched, LOW);
+}
+
+//---------------------------
+
+void updateAlarm(bool reset) {
+    if (alarming && !reset) {
+        digitalWrite(AlarmPin, HIGH);  //sound alarm
+        return;
+    }
+
+    digitalWrite(AlarmPin, LOW);
+    alarming = false;
 }
