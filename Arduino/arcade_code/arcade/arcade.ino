@@ -17,16 +17,16 @@ const int ResetPin = 9;
 const int Unused10 = 10;
 
 const int UpdateInterval = 100;  //send commands to Sergio every 100 millis
-long prevSendTime = 0;  //record the previous millis() of command sent to Sergio
+long prevSendTime = 0;           //record the previous millis() of command sent to Sergio
 
 const int MagInterval = 2 * 60 * 100;  //timeout the magnet after 2 minutes
-long prevMagTime = 0;  //record the previous millis() the magnet was turned on at
+long prevMagTime = 0;                  //record the previous millis() the magnet was turned on at
 
 bool autoMode = true;  //manual or automatic control?
 
 unsigned char lastManualState = 0;  //record the state entered manual through Serial
 
-const unsigned char HomeEncodedState = 0b01010010;  //set home position to top left, retracteds
+const unsigned char HomeEncodedState = 0b01010011;  //set home position to top left, retracteds
 
 //---------------------------
 
@@ -66,7 +66,7 @@ void loop() {
     encode data as unsigned char from arcade as follows:
         format: item (off/on 0/1)
 
-        mag|up|down|left|right|forward|back|spare
+        mag|up|down|left|right|forward|back|reset
         7  |6 |5   |4   |3    |2      |1   |0
     */
     //if it's been longer than the interval, update Sergio
