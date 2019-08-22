@@ -187,12 +187,16 @@ void updateMag(bool activated) {
 
 void updateVert(bool up, bool down, bool acting) {
     if (up && !acting) {
-        //go up
+        digitalWrite(VertSwitched, LOW);
+        digitalWrite(VertUp, HIGH);
+        digitalWrite(VertDown, LOW);
         return;
     }
 
     if (down && !acting) {
-        //go down
+        digitalWrite(VertSwitched, HIGH);
+        digitalWrite(VertUp, LOW);
+        digitalWrite(VertDown, HIGH);
         return;
     }
 
