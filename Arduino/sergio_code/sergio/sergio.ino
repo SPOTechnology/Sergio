@@ -130,13 +130,22 @@ void checkManualInput() {
         unsigned char encodedState = 0;
         for (int i = 0; i < 8; ++i) {
             int x = input.charAt(i) - '0';
-            if (x != 0 && x != 1)
+            if (x != 0 && x != 1){
                 return;
-            encodedState |= (x << i);
+            }
+            if(x == 1) {
+              encodedState |= (1 << (7 - i));
+            }
+        }
+
+        for(int i = 0; i < 8; ++i){
+            Serial.print((encodedState & (1 << (7 - i))) ? "1" : "0");
         }
 
         //could run checks on data in the future
 
+
+        Serial.println();
         updateRelays(encodedState);
     }
 }
