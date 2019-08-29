@@ -160,19 +160,19 @@ unsigned char findEncodedState() {
         prevMagTime = millis();
 
     if (digitalRead(VertUp) == HIGH)
-        encodedState |= 6;
+        encodedState |= (1 << 6);
     else if (digitalRead(VertDown) == HIGH)
-        encodedState |= 5;
+        encodedState |= (1 << 5);
 
     if (digitalRead(HorLeft) == HIGH)
-        encodedState |= 4;
+        encodedState |= (1 << 4);
     else if (digitalRead(HorRight) == HIGH)
-        encodedState |= 3;
+        encodedState |= (1 << 3);
 
     if (digitalRead(ActForward) == HIGH)
-        encodedState |= 2;
+        encodedState |= (1 << 2);
     else if (digitalRead(ActBack) == HIGH)
-        encodedState |= 1;
+        encodedState |= (1 << 1);
 
     return encodedState;
 }
