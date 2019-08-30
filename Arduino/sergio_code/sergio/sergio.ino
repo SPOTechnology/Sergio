@@ -156,10 +156,11 @@ unsigned char inputFromArcade() {
 //---------------------------
 
 void updateRelays(unsigned char encodedState) {
-    for (int i = 0; i < 8; ++i) {
-        Serial.print((encodedState & (1 << (7 - i))) ? "1" : "0");
-    }
-    Serial.println();
+    //print the encoded state byte
+    // for (int i = 0; i < 8; ++i) {
+    //     Serial.print((encodedState & (1 << (7 - i))) ? "1" : "0");
+    // }
+    // Serial.println();
 
     //args bool activated (true == on)
     updateMag(encodedState & (1 << 7));

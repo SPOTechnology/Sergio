@@ -86,6 +86,7 @@ void checkManualInput() {
     }
 
     if (input == "auto") {
+        Serial.println("auto");
         autoMode = true;
         lastManualState = 0;
     }
@@ -116,6 +117,7 @@ void sendCommands(unsigned char encodedState) {
     prevSendTime = millis();
     Sergio.write(encodedState);  //send the encoded state of the controls to Sergio
 
+    //print the encoded state byte
     for (int i = 0; i < 8; ++i) {
         Serial.print((encodedState & (1 << (7 - i))) ? "1" : "0");
     }
