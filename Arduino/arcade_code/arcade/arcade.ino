@@ -1,32 +1,43 @@
 HardwareSerial& Sergio = Serial1;  //rename Serial1 port to Sergio
 
 //declare pins
-const int MagPin = 2;
+const int MAGPIN = 2;
 
-const int VertUp = 3;
-const int VertDown = 4;
+const int VERTUP = 3;
+const int VERTDOWN = 4;
 
-const int HorLeft = 5;
-const int HorRight = 6;
+const int HORLEFT = 5;
+const int HORRIGHT = 6;
 
-const int ActForward = 7;
-const int ActBack = 8;
+const int ACTFORWARD = 7;
+const int ACTBACK = 8;
 
-const int ResetPin = 9;
+const int RESETPIN = 9;
 
-const int Unused10 = 10;
+const int UNUSED10 = 10;
 
-const int UpdateInterval = 100;  //send commands to Sergio every 100 millis
+const int UPDATEINTERVAL = 100;  //send commands to Sergio every 100 millis
 long prevSendTime = 0;           //record the previous millis() of command sent to Sergio
 
-const int MagInterval = 2 * 60 * 100;  //timeout the magnet after 2 minutes
+const int MAGINTERVAL = 2 * 60 * 100;  //timeout the magnet after 2 minutes
 long prevMagTime = 0;                  //record the previous millis() the magnet was turned on at
 
 bool autoMode = true;  //manual or automatic control?
 
 unsigned char lastManualState = 0;  //record the state entered manual through Serial
 
-const unsigned char HomeEncodedState = 0b01010011;  //set home position to top left, retracted, reset
+const unsigned char MAGCHAR = 0b10000000;
+const unsigned char UPCHAR = 0b01000000;
+const unsigned char DOWNCHAR = 0b00100000;
+const unsigned char LEFTCHAR = 0b00010000;
+const unsigned char RIGHTCHAR = 0b00001000;
+const unsigned char FORWARDCHAR = 0b00000100;
+const unsigned char BACKCHAR = 0b00000010;
+const unsigned char RESETCHAR = 0b00000001;
+
+const unsigned char ALLRELAYSOFF = 0b00000000;
+
+const unsigned char HOMEENCODEDSTATE = 0b01010011;  //set home position to top left, retracted, reset
 
 //---------------------------
 
@@ -40,20 +51,20 @@ void setup() {
 //---------------------------
 
 void initPins() {
-    pinMode(MagPin, INPUT);
+    pinMode(MAGPIN, INPUT);
 
-    pinMode(VertUp, INPUT);
-    pinMode(VertDown, INPUT);
+    pinMode(VERTUP, INPUT);
+    pinMode(VERTDOWN, INPUT);
 
-    pinMode(HorLeft, INPUT);
-    pinMode(HorRight, INPUT);
+    pinMode(HORLEFT, INPUT);
+    pinMode(HORRIGHT, INPUT);
 
-    pinMode(ActForward, INPUT);
-    pinMode(ActBack, INPUT);
+    pinMode(ACTFORWARD, INPUT);
+    pinMode(ACTBACK, INPUT);
 
-    pinMode(ResetPin, INPUT);
+    pinMode(RESETPIN, INPUT);
 
-    pinMode(Unused10, INPUT);
+    pinMode(UNUSED10, INPUT);
 }
 
 //---------------------------
@@ -71,7 +82,7 @@ void loop() {
   */
 
     //if it's been longer than the interval, update Sergio
-    if ((millis() - prevSendTime >= UpdateInterval))
+    if ((millis() - prevSendTime >= UPDATEINTERVAL))
         sendCommands(checkControls());
 }
 
@@ -145,7 +156,7 @@ unsigned char checkControls() {
 
 bool checkMagTimeout() {
     //if the magnet has been on for longer than the allowed interval, timeout
-    if (millis() - prevMagTime >= MagInterval)
+    if (millis() - prevMagTime >= MAGINTERVAL)
         return true;
     return false;
 }
@@ -155,28 +166,28 @@ bool checkMagTimeout() {
 unsigned char findEncodedState() {
     unsigned long encodedState = 0;
 
-    if (digitalRead(ResetPin) == HIGH)
-        return HomeEncodedState;  //if reset is pressed, return to home
+    if (digitalRead(RESETPIN) == HIGH)
+        return HOMEENCODEDSTATE;  //if reset is pressed, return to home
 
-    if (digitalRead(MagPin) == HIGH)
-        encodedState |= (1 << 7);
+    if (digitalRead(MAGPIN) == HIGH)
+        encodedState |= MAGCHAR;
     else
         prevMagTime = millis();
 
-    if (digitalRead(VertUp) == HIGH)
-        encodedState |= (1 << 6);
-    else if (digitalRead(VertDown) == HIGH)
-        encodedState |= (1 << 5);
+    if (digitalRead(VERTUP) == HIGH)
+        encodedState |= UPCHAR;
+    else if (digitalRead(VERTDOWN) == HIGH)
+        encodedState |= DOWNCHAR;
 
-    if (digitalRead(HorLeft) == HIGH)
-        encodedState |= (1 << 4);
-    else if (digitalRead(HorRight) == HIGH)
-        encodedState |= (1 << 3);
+    if (digitalRead(HORLEFT) == HIGH)
+        encodedState |= LEFTCHAR;
+    else if (digitalRead(HORRIGHT) == HIGH)
+        encodedState |= RIGHTCHAR;
 
-    if (digitalRead(ActForward) == HIGH)
-        encodedState |= (1 << 2);
-    else if (digitalRead(ActBack) == HIGH)
-        encodedState |= (1 << 1);
+    if (digitalRead(ACTFORWARD) == HIGH)
+        encodedState |= FORWARDCHAR;
+    else if (digitalRead(ACTBACK) == HIGH)
+        encodedState |= BACKCHAR;
 
     return encodedState;
 }

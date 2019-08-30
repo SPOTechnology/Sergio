@@ -1,31 +1,40 @@
 HardwareSerial& Arcade = Serial1;  //rename Serial1 port to Arcade
 
 //declare pins
-const int MagPin = 2;
+const int MAGPIN = 2;
 
-const int VertSwitched = 3;
-const int VertUp = 4;
-const int VertDown = 5;
+const int VERTSWITCHED = 3;
+const int VERTUP = 4;
+const int VERTDOWN = 5;
 
-const int HorSwitched = 6;
-const int HorLeft = 7;
-const int HorRight = 8;
+const int HORSWITCHED = 6;
+const int HORLEFT = 7;
+const int HORRIGHT = 8;
 
-const int AlarmPin = 9;
+const int ALARMPIN = 9;
 
-const int ActSwitched = 30;
-const int ActForward = 31;
-const int ActBack = 32;
+const int ACTSWITCHED = 30;
+const int ACTFORWARD = 31;
+const int ACTBACK = 32;
 
-const int Unused33 = 33;
+const int UNUSED33 = 33;
 
-const int ActRetractSwitch = 10;
+const int ACTRETRACTSWITCH = 10;
 
-const int ActContactPin = A0;
+const int ACTCONTACTPIN = A0;
+
+const unsigned char MAGCHAR = 0b10000000;
+const unsigned char UPCHAR = 0b01000000;
+const unsigned char DOWNCHAR = 0b00100000;
+const unsigned char LEFTCHAR = 0b00010000;
+const unsigned char RIGHTCHAR = 0b00001000;
+const unsigned char FORWARDCHAR = 0b00000100;
+const unsigned char BACKCHAR = 0b00000010;
+const unsigned char RESETCHAR = 0b00000001;
+
+const unsigned char ALLRELAYSOFF = 0b00000000;
 
 bool alarming = false;  //record if alarm should be sounding
-
-const unsigned char AllRelaysOff = 0b00000000;
 
 //---------------------------
 
@@ -39,37 +48,37 @@ void setup() {
 //---------------------------
 
 void initPins() {
-    pinMode(MagPin, OUTPUT);
-    digitalWrite(MagPin, LOW);
+    pinMode(MAGPIN, OUTPUT);
+    digitalWrite(MAGPIN, LOW);
 
-    pinMode(VertSwitched, OUTPUT);
-    digitalWrite(VertSwitched, LOW);
-    pinMode(VertUp, OUTPUT);
-    digitalWrite(VertUp, LOW);
-    pinMode(VertDown, OUTPUT);
-    digitalWrite(VertDown, LOW);
+    pinMode(VERTSWITCHED, OUTPUT);
+    digitalWrite(VERTSWITCHED, LOW);
+    pinMode(VERTUP, OUTPUT);
+    digitalWrite(VERTUP, LOW);
+    pinMode(VERTDOWN, OUTPUT);
+    digitalWrite(VERTDOWN, LOW);
 
-    pinMode(HorSwitched, OUTPUT);
-    digitalWrite(HorSwitched, LOW);
-    pinMode(HorLeft, OUTPUT);
-    digitalWrite(HorLeft, LOW);
-    pinMode(HorRight, OUTPUT);
-    digitalWrite(HorRight, LOW);
+    pinMode(HORSWITCHED, OUTPUT);
+    digitalWrite(HORSWITCHED, LOW);
+    pinMode(HORLEFT, OUTPUT);
+    digitalWrite(HORLEFT, LOW);
+    pinMode(HORRIGHT, OUTPUT);
+    digitalWrite(HORRIGHT, LOW);
 
-    pinMode(AlarmPin, OUTPUT);
-    digitalWrite(AlarmPin, LOW);
+    pinMode(ALARMPIN, OUTPUT);
+    digitalWrite(ALARMPIN, LOW);
 
-    pinMode(ActSwitched, OUTPUT);
-    digitalWrite(ActSwitched, LOW);
-    pinMode(ActForward, OUTPUT);
-    digitalWrite(ActForward, LOW);
-    pinMode(ActBack, OUTPUT);
-    digitalWrite(ActBack, LOW);
+    pinMode(ACTSWITCHED, OUTPUT);
+    digitalWrite(ACTSWITCHED, LOW);
+    pinMode(ACTFORWARD, OUTPUT);
+    digitalWrite(ACTFORWARD, LOW);
+    pinMode(ACTBACK, OUTPUT);
+    digitalWrite(ACTBACK, LOW);
 
-    pinMode(ActRetractSwitch, INPUT);
+    pinMode(ACTRETRACTSWITCH, INPUT);
 
-    pinMode(Unused33, OUTPUT);
-    digitalWrite(Unused33, LOW);
+    pinMode(UNUSED33, OUTPUT);
+    digitalWrite(UNUSED33, LOW);
 }
 
 //---------------------------
@@ -97,21 +106,21 @@ void loop() {
 //---------------------------
 
 void checkActuatorExtension() {
-    if (digitalRead(ActRetractSwitch) == LOW) {  //disable movement when actuator is out
-        digitalWrite(VertSwitched, LOW);
-        digitalWrite(VertUp, LOW);
-        digitalWrite(VertDown, LOW);
-        digitalWrite(HorSwitched, LOW);
-        digitalWrite(HorLeft, LOW);
-        digitalWrite(HorRight, LOW);
+    if (digitalRead(ACTRETRACTSWITCH) == LOW) {  //disable movement when actuator is out
+        digitalWrite(VERTSWITCHED, LOW);
+        digitalWrite(VERTUP, LOW);
+        digitalWrite(VERTDOWN, LOW);
+        digitalWrite(HORSWITCHED, LOW);
+        digitalWrite(HORLEFT, LOW);
+        digitalWrite(HORRIGHT, LOW);
     }
 }
 
 //---------------------------
 
 void checkLose() {  //if the act circuit is open when it's supposed to be close, you lose
-    if ((analogRead(ActContactPin) < 100) && (digitalRead(ActForward))) {
-        updateRelays(AllRelaysOff);
+    if ((analogRead(ACTCONTACTPIN) < 100) && (digitalRead(ACTFORWARD))) {
+        updateRelays(ALLRELAYSOFF);
         alarming = true;
     }
 }
@@ -163,24 +172,24 @@ void updateRelays(unsigned char encodedState) {
     // Serial.println();
 
     //args bool activated (true == on)
-    updateMag(encodedState & (1 << 7));
+    updateMag(encodedState & MAGCHAR);
 
     //args bool reset
-    updateAlarm(encodedState & (1 << 0));
+    updateAlarm(encodedState & RESETCHAR);
 
-    if (alarming && !(encodedState & (1 << 0)))  //if alarming and reset button is not pressed, do not allow motion
+    if (alarming && !(encodedState & RESETCHAR))  //if alarming and reset button is not pressed, do not allow motion
         return;
 
-    bool acting = (encodedState & (1 << 1)) || (encodedState & (1 << 2) || (digitalRead(ActRetractSwitch) == LOW)) ? true : false;
+    bool acting = ((encodedState & BACKCHAR) || (encodedState & FORWARDCHAR) || (digitalRead(ACTRETRACTSWITCH) == LOW)) ? true : false;
 
     //args bool up, bool down, bool acting
-    updateVert(encodedState & (1 << 6), encodedState & (1 << 5), acting);
+    updateVert(encodedState & UPCHAR, encodedState & DOWNCHAR, acting);
 
     //args bool left, bool right, bool acting
-    updateHor(encodedState & (1 << 4), encodedState & (1 << 3), acting);
+    updateHor(encodedState & LEFTCHAR, encodedState & RIGHTCHAR, acting);
 
     //args bool forward, bool back
-    updateAct(encodedState & (1 << 2), encodedState & (1 << 1));
+    updateAct(encodedState & FORWARDCHAR, encodedState & BACKCHAR);
 }
 
 //---------------------------
@@ -188,88 +197,88 @@ void updateRelays(unsigned char encodedState) {
 //args bool activated (true == on)
 void updateMag(bool activated) {
     if (activated)
-        digitalWrite(MagPin, HIGH);
+        digitalWrite(MAGPIN, HIGH);
     else
-        digitalWrite(MagPin, LOW);
+        digitalWrite(MAGPIN, LOW);
 }
 
 //---------------------------
 
 void updateVert(bool up, bool down, bool acting) {
     if (up && !acting) {
-        digitalWrite(VertSwitched, LOW);
-        digitalWrite(VertUp, HIGH);
-        digitalWrite(VertDown, LOW);
+        digitalWrite(VERTSWITCHED, LOW);
+        digitalWrite(VERTUP, HIGH);
+        digitalWrite(VERTDOWN, LOW);
         return;
     }
 
     if (down && !acting) {
-        digitalWrite(VertSwitched, HIGH);
-        digitalWrite(VertUp, LOW);
-        digitalWrite(VertDown, HIGH);
+        digitalWrite(VERTSWITCHED, HIGH);
+        digitalWrite(VERTUP, LOW);
+        digitalWrite(VERTDOWN, HIGH);
         return;
     }
 
     //disable when not active actuator is acting
-    digitalWrite(VertSwitched, LOW);
-    digitalWrite(VertUp, LOW);
-    digitalWrite(VertDown, LOW);
+    digitalWrite(VERTSWITCHED, LOW);
+    digitalWrite(VERTUP, LOW);
+    digitalWrite(VERTDOWN, LOW);
 }
 
 //---------------------------
 
 void updateHor(bool left, bool right, bool acting) {
     if (left && !acting) {
-        digitalWrite(HorLeft, HIGH);
-        digitalWrite(HorRight, LOW);
-        digitalWrite(HorSwitched, LOW);
+        digitalWrite(HORLEFT, HIGH);
+        digitalWrite(HORRIGHT, LOW);
+        digitalWrite(HORSWITCHED, LOW);
         return;
     }
 
     if (right && !acting) {
-        digitalWrite(HorLeft, LOW);
-        digitalWrite(HorRight, HIGH);
-        digitalWrite(HorSwitched, HIGH);
+        digitalWrite(HORLEFT, LOW);
+        digitalWrite(HORRIGHT, HIGH);
+        digitalWrite(HORSWITCHED, HIGH);
         return;
     }
 
     //disable when not active or actuator is acting
-    digitalWrite(HorSwitched, LOW);
-    digitalWrite(HorLeft, LOW);
-    digitalWrite(HorRight, LOW);
+    digitalWrite(HORSWITCHED, LOW);
+    digitalWrite(HORLEFT, LOW);
+    digitalWrite(HORRIGHT, LOW);
 }
 
 //---------------------------
 
 void updateAct(bool forward, bool back) {
     if (back) {
-        digitalWrite(ActForward, LOW);    //stop forward
-        digitalWrite(ActSwitched, HIGH);  //select back
-        digitalWrite(ActBack, HIGH);      //go back
+        digitalWrite(ACTFORWARD, LOW);    //stop forward
+        digitalWrite(ACTSWITCHED, HIGH);  //select back
+        digitalWrite(ACTBACK, HIGH);      //go back
         return;
     }
 
     if (forward) {
-        digitalWrite(ActBack, LOW);      //stop forward
-        digitalWrite(ActSwitched, LOW);  //select back
-        digitalWrite(ActForward, HIGH);  //go back
+        digitalWrite(ACTBACK, LOW);      //stop forward
+        digitalWrite(ACTSWITCHED, LOW);  //select back
+        digitalWrite(ACTFORWARD, HIGH);  //go back
         return;
     }
 
     //if not activated, disable
-    digitalWrite(ActForward, LOW);
-    digitalWrite(ActBack, LOW);
-    digitalWrite(ActSwitched, LOW);
+    digitalWrite(ACTFORWARD, LOW);
+    digitalWrite(ACTBACK, LOW);
+    digitalWrite(ACTSWITCHED, LOW);
 }
 
 //---------------------------
 
 void updateAlarm(bool reset) {
     if (alarming && !reset) {
-        digitalWrite(AlarmPin, HIGH);  //sound alarm
+        digitalWrite(ALARMPIN, HIGH);  //sound alarm
         return;
     }
 
-    digitalWrite(AlarmPin, LOW);
+    digitalWrite(ALARMPIN, LOW);
     alarming = false;
 }
