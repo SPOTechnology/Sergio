@@ -21,6 +21,8 @@ const int Unused33 = 33;
 
 const int ActRetractSwitch = 10;
 
+const int ActContactPin = A0;
+
 bool alarming = false;  //record if alarm should be sounding
 
 const unsigned char AllRelaysOff = 0b00000000;
@@ -107,12 +109,11 @@ void checkActuatorExtension() {
 
 //---------------------------
 
-void checkLose() {
-    if (true)  //eventually if you have not lost
-        return;
-
-    updateRelays(AllRelaysOff);
-    alarming = true;
+void checkLose() {  //if the act circuit is open when it's supposed to be close, you lose
+    if ((analogRead(ActContactPin) < 100) && (digitalRead(ActForward))) {
+        updateRelays(AllRelaysOff);
+        alarming = true;
+    }
 }
 
 //---------------------------

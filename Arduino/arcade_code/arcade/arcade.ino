@@ -80,8 +80,10 @@ void loop() {
 void checkManualInput() {
     String input = Serial.readString();
 
-    if (input == "manual")
+    if (input == "manual") {
         autoMode = false;
+        Serial.println("manual");
+    }
 
     if (input == "auto") {
         autoMode = true;
