@@ -21,7 +21,7 @@ const int UNUSED33 = 33;
 
 const int ACTRETRACTSWITCH = 10;
 
-const int ACTCONTACTPIN = A0;
+const int ACTCONTACTPIN = 34;
 
 const unsigned char MAGCHAR = 0b10000000;
 const unsigned char UPCHAR = 0b01000000;
@@ -35,6 +35,8 @@ const unsigned char RESETCHAR = 0b00000001;
 const unsigned char ALLRELAYSOFF = 0b00000000;
 
 bool alarming = false;  //record if alarm should be sounding
+
+long actTime = 0;
 
 //---------------------------
 
@@ -76,6 +78,7 @@ void initPins() {
     digitalWrite(ACTBACK, LOW);
 
     pinMode(ACTRETRACTSWITCH, INPUT);
+    pinMode(ACTCONTACTPIN, INPUT);
 
     pinMode(UNUSED33, OUTPUT);
     digitalWrite(UNUSED33, LOW);
@@ -119,7 +122,7 @@ void checkActuatorExtension() {
 //---------------------------
 
 void checkLose() {  //if the act circuit is open when it's supposed to be close, you lose
-    if ((analogRead(ACTCONTACTPIN) < 100) && (digitalRead(ACTFORWARD))) {
+    if ((digitalRead(ACTCONTACTPIN) == LOW) && (digitalRead(ACTFORWARD)) && ((millis() - actTime) > 500) && (actTime != 0)) {
         updateRelays(ALLRELAYSOFF);
         alarming = true;
     }
@@ -180,7 +183,7 @@ void updateRelays(unsigned char encodedState) {
     if (alarming && !(encodedState & RESETCHAR))  //if alarming and reset button is not pressed, do not allow motion
         return;
 
-    bool acting = ((encodedState & BACKCHAR) || (encodedState & FORWARDCHAR) || (digitalRead(ACTRETRACTSWITCH) == LOW)) ? true : false;
+    bool acting = ((encodedState & FORWARDCHAR) || (digitalRead(ACTRETRACTSWITCH) == LOW)) ? true : false;
 
     //args bool up, bool down, bool acting
     updateVert(encodedState & UPCHAR, encodedState & DOWNCHAR, acting);
@@ -255,15 +258,24 @@ void updateAct(bool forward, bool back) {
         digitalWrite(ACTFORWARD, LOW);    //stop forward
         digitalWrite(ACTSWITCHED, HIGH);  //select back
         digitalWrite(ACTBACK, HIGH);      //go back
+
+        actTime = 0;
+
         return;
     }
 
     if (forward) {
+        if (actTime == 0) {
+            actTime = millis();
+        }
+
         digitalWrite(ACTBACK, LOW);      //stop forward
         digitalWrite(ACTSWITCHED, LOW);  //select back
         digitalWrite(ACTFORWARD, HIGH);  //go back
         return;
     }
+
+    actTime = 0;
 
     //if not activated, disable
     digitalWrite(ACTFORWARD, LOW);

@@ -1,7 +1,7 @@
 HardwareSerial& Sergio = Serial1;  //rename Serial1 port to Sergio
 
 //declare pins
-const int MAGPIN = 2;
+const int MAGPIN = 7;
 
 const int VERTUP = 3;
 const int VERTDOWN = 4;
@@ -9,12 +9,12 @@ const int VERTDOWN = 4;
 const int HORLEFT = 5;
 const int HORRIGHT = 6;
 
-const int ACTFORWARD = 7;
-const int ACTBACK = 8;
+const int ACTFORWARD = 10;
+const int ACTBACK = 2;
 
 const int RESETPIN = 9;
 
-const int UNUSED10 = 10;
+const int UNUSED10 = 8;
 
 const int UPDATEINTERVAL = 100;  //send commands to Sergio every 100 millis
 long prevSendTime = 0;           //record the previous millis() of command sent to Sergio
