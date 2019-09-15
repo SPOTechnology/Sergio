@@ -38,6 +38,8 @@ bool alarming = false;  //record if alarm should be sounding
 
 long actTime = 0;
 
+long alarmTime = 0;
+
 //---------------------------
 
 void setup() {
@@ -89,8 +91,6 @@ void initPins() {
 void loop() {
     checkActuatorExtension();
 
-    checkLose();
-
     if (Serial.available())
         checkManualInput();
 
@@ -104,6 +104,8 @@ void loop() {
 
     if (Arcade.available())
         updateRelays(inputFromArcade());
+
+    checkLose();
 }
 
 //---------------------------
@@ -122,10 +124,18 @@ void checkActuatorExtension() {
 //---------------------------
 
 void checkLose() {  //if the act circuit is open when it's supposed to be close, you lose
-    if ((digitalRead(ACTCONTACTPIN) == LOW) && (digitalRead(ACTFORWARD)) && ((millis() - actTime) > 500) && (actTime != 0)) {
-        updateRelays(ALLRELAYSOFF);
-        alarming = true;
+    if ((digitalRead(ACTCONTACTPIN) == LOW) && digitalRead(ACTFORWARD) && ((millis() - actTime) > 100) && (actTime != 0)) {
+        if (alarmTime) {
+            if (millis() - alarmTime > 50) {
+                updateRelays(ALLRELAYSOFF);
+                alarming = true;
+            }
+            return;
+        }
+        alarmTime = millis();
+        return;
     }
+    alarmTime = 0;
 }
 
 //---------------------------
