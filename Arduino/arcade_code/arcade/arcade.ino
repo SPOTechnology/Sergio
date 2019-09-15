@@ -16,7 +16,7 @@ const int RESETPIN = 9;
 
 const int UNUSED10 = 8;
 
-const int UPDATEINTERVAL = 100;  //send commands to Sergio every 100 millis
+const int UPDATEINTERVAL = 50;  //send commands to Sergio every 100 millis
 long prevSendTime = 0;           //record the previous millis() of command sent to Sergio
 
 const int MAGINTERVAL = 2 * 60 * 100;  //timeout the magnet after 2 minutes

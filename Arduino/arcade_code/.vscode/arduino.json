@@ -2,5 +2,6 @@
     "sketch": "arcade/arcade.ino",
     "board": "arduino:avr:mega",
     "configuration": "cpu=atmega2560",
-    "port": "/dev/ttyS0"
+    "port": "/dev/ttyACM0",
+    "programmer": "AVRISP mkII"
 }
